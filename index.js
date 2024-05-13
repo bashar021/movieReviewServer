@@ -255,6 +255,7 @@ app.get('/user-reviews', verify_auth_token, async (req, res) => {
             // console.log(reviews)
             return res.status(200).json({ data: reviews });
         }
+        return res.status(204).json({ data: "no conttent found"});
         console.log(reviews)
     } catch (error) {
         console.log('can not fetch the user reviews ')
