@@ -1,20 +1,17 @@
 "strict"
 const express = require('express')
-var mongoose = require('mongoose');
-const { ObjectId } = require('mongodb')
 var bodyParser = require('body-parser');
 var jwt = require('jsonwebtoken'); // for user authentication 
 var dotenv = require('dotenv').config();
 const bcrypt = require('bcrypt'); // for password encryption 
 var cookieParser = require('cookie-parser')
 const { body, validationResult } = require('express-validator');
-const UserProfile = require('./schema_modals/user_profile')
+const UserProfile = require('./schema_modals/user_profile.js')
 const Reviews = require('./schema_modals/Reviews.js')
 const { Comments } = require('./schema_modals/Comments.js')
-const ConnectToDb = require('./db') // importing mongodb connection 
-var userbcryptpassword = require('./middlewares/BcryptedPass')
-var checkexistuser = require('./middlewares/Checkexistuser')
-var Token_validation = require('./middlewares/Token_validation')
+const ConnectToDb = require('./db.js') // importing mongodb connection 
+var userbcryptpassword = require('./middlewares/BcryptedPass.js')
+var checkexistuser = require('./middlewares/Checkexistuser.js')
 const Notifications = require('./schema_modals/Notification.js')
 const SendNotification = require('./middlewares/SendNotification.js')
 const http = require('http');
