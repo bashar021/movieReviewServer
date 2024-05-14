@@ -389,7 +389,7 @@ app.post('/user/comment/add', verify_auth_token, async (req, res) => {
         reviewName: '',
         senderUserName: user.userName,
         senderUserId: req.user_id,
-        message: 'has commented on you review ',
+        message: ' has commented on your review ',
         createdCommentId: '',
         commentedOnCommentId:'',
         commentedOnComment:'',
@@ -468,7 +468,7 @@ app.post('/user/comment/reply', verify_auth_token, async (req, res) => {
             if (sender !== receiver) {
                 const data = await SendNotification(receiver, notification)
                 if (data) {
-                    console.log(notification.senderUserName, 'reply on your comment ')
+                    console.log(notification.senderUserName, ' reply on your comment ')
                     console.log('notification for :', receiver)
                 }
             } else {
