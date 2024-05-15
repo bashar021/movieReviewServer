@@ -8,6 +8,10 @@ const bcrypt = require('bcrypt');
 var app = express()
 var router = express.Router()
 var { body, validationResult } = require('express-validator');
+const UserProfile = require('../schema_modals/user_profile.js')
+const checkexistuser = require('../middlewares/Checkexistuser.js')
+const userbcryptpassword = require('../middlewares/BcryptedPass.js')
+const SendNotification  = require('../middlewares/SendNotification.js')
 
 
 app.use(express.json())
@@ -17,20 +21,84 @@ app.use(express.urlencoded({ extended: true })); // For parsing application/x-ww
 router.use(cookieParser())
 
 
-router.post('/login',(req,res)=>{
-    console.log(req.body)
-    // 200 status code for ok message 
-    res.status(200).json({data:'this is a login page '})
-})
-router.post('/signup',(req,res)=>{
-    console.log(req.body)
-    console.log(req.body)
-    // 201 status code fo created status 
-    res.status(201).json({data:"this is signup page "})
+router.post('/login', [body('password', 'password must be atleast 6 chracter').isLength({ min: 6 }), body('email', 'email is not valid').isEmail()], async (req, res) => {
+    // console.log(req.body)
+    try {
+        const user = await UserProfile.findOne({ email: req.body.email })
+        if (!user) {
+            return res.status(404).json({ error: 'your account does not exist please signUp' }) //rediret user to signup page it does not exists 
+            // return res.status(400).json({ message: "please insert valid username or password "});
+        }
+        else if (user) {
+            const userPass = await bcrypt.compare(req.body.password, user.password);
+            if (!userPass) {
+                return res.status(401).json({ error: "please insert valid username or password " });
+            }
+            const data = {
+                user: { id: user.id }
+            }
+            const authtoken = jwt.sign(data, process.env.SECRET_KEY) // genrating the authtoken for user 
+            // res.cookie("jwt", authtoken, {httpOnly: true,secure:true,expires:new Date(Date.now()+1000000)}) // 
+            res.status(200).json({ data: user, jwt: authtoken })
+        }
+
+    } catch (error) {
+        return res.status(500).json({ error: 'internal server error' });
+
+    }
 })
 
-router.get('/login',(req,res)=>{
-    res.send('hello this is a login page ')
+
+router.post('/signup', [body('password', 'password must be atleast 6 chracter').isLength({ min: 6 }), body('email', 'email is not valid').isEmail(), body('phone', 'number is not valid').isLength({ min: 10 })], [checkexistuser, userbcryptpassword], async (req, res) => {
+    // console.log(req.body)
+    // giving an error of express validations when the userser input data foes not match 
+    const notification = {
+        reviewId: '',
+        reviewName: '',
+        senderUserName: "Website Bot",
+        senderUserId: '',
+        message: 'hii welcome to the movie reviews website ',
+        createdCommentId: '',
+        commentDescription: '',
+        seen: false,
+    }
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        // 400  staus code for bad request 
+        return res.status(400).json({ error: errors.array()[0].msg }); // retruning the array of errors ocuring in the user data 
+    }
+    try {
+        const user = await UserProfile.create({ name: req.body.name, userName: req.body.userName, email: req.body.email, number: req.body.phone, password: req.securepassword })
+        if (user) {
+            const data = {
+                user: { id: user.id }
+            }
+            // console.log(user)
+            const authtoken = jwt.sign(data, process.env.SECRET_KEY) // genrating the authtoken for user 
+            // console.log('this is an authtoken', authtoken)
+            // we can not set cookie here directly becuase of not same origin so we will send it as a  data 
+            // res.cookie("jwt", authtoken, {httpOnly: true,secure:true,expires:new Date(Date.now()+1000000)}) // saving the authtoken for the user in the cookie
+            notification.senderUserId = user._id.toString()
+            const result = await SendNotification(user._id);
+            if(result){
+                console.log('welcome notifications has send to the user ')
+            }
+            return res.status(201).json({ data: user, jwt: authtoken })
+        }
+        return res.status(500), json({ error: 'unable to singUp please try again' })
+
+    } catch (error) {
+        console.log("unable to singup please try again ")
+        console.log(error)
+        // 500 status code for internal server error 
+        return res.status(500), json({ error: 'unable to singUp please try again' })
+
+    }
 })
+
+
+
+
+
 
 module.exports = router;
