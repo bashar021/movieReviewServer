@@ -15,6 +15,7 @@ const ReviewsSchema = new Schema({
             movieRating:{type:String},
             movieReleaseDate:{type:String},
             movieTmdbReference:{type:String},
+            commentCount: { type: Number, default: 0 },
             date: { type: Date, default: Date.now }
         }
     ]

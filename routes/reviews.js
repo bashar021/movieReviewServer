@@ -20,8 +20,9 @@ router.get('/', verifyAuthToken, async (req, res) => {
             // console.log(reviews)
             return res.status(200).json({ data: reviews });
         }
-        return res.status(204).json({ data: "no conttent found"});
-        console.log(reviews)
+        console.log('fetching reviews from routes ')
+        return res.status(204).json({ data: "no content found"});
+        
     } catch (error) {
         console.log('can not fetch the user reviews ')
         res.status(500).json({ error: 'internal server error ' })

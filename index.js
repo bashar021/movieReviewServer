@@ -72,7 +72,7 @@ app.get('/reviews', async (req, res) => {
                     extractedObjects.push(review);
                 });
             });
-            // console.log(extractedObjects)
+            console.log('fetching reviews from index.js file ')
             return res.status(200).json({ data: extractedObjects });
         }
 

@@ -47,7 +47,9 @@ router.post('/add', verifyAuthToken, async (req, res) => {
             
             notification.createdCommentId = comment._id.toString()
             if (comment) {
+                // await Reviews.updateOne({ 'ReviewList._id': req.body.reviewId },{ $inc: { commentCount: 1 } },{ new: true });
                 const reviewName = await Reviews.findOne({ 'ReviewList._id': req.body.reviewId })
+                const result = await Reviews.findOneAndUpdate({ _id:  reviewName._id, 'ReviewList._id':req.body.reviewId},{ $inc: { 'ReviewList.$.commentCount': 1 } },{ new: true } );
                 // reviewName._id  review owner id 
                 const newReviewName = await Reviews.findOne({ _id: reviewName._id }, { ReviewList: { $elemMatch: { _id: req.body.reviewId } } })
                 // newReviewName.ReviewList[0].mvovieName 
@@ -94,9 +96,12 @@ router.get('/delete/:commentId/:parentId', verifyAuthToken, async (req, res) => 
     try {
         if (req.params.parentId !== 'none') {
             const removeFromParent = await Comments.findByIdAndUpdate({ _id: req.params.parentId }, { $pull: { 'replies': commentId } })
+            // const result = await Reviews.findOneAndUpdate({ _id:  req.user_id, 'ReviewList._id': removeFromParent.reviewId},{ $inc: { 'ReviewList.$.commentCount': -1 } },{ new: true } );
         }
         const deleteRepliesRecursively = async (commentId) => {
             const comment = await Comments.findOneAndDelete({ _id: commentId });
+            const result = await Reviews.findOneAndUpdate({ _id:  req.user_id, 'ReviewList._id': comment.reviewId},{ $inc: { 'ReviewList.$.commentCount': -1 } },{ new: true } );
+            // comment.reviewId
             if (comment.replies) {
                 for (const reply of comment.replies) {
                     await deleteRepliesRecursively(reply)
@@ -137,6 +142,8 @@ router.post('/reply/add', verifyAuthToken, async (req, res) => {
             const data = { reviewId: req.body.reviewId, commentUserName: user.userName, commentUserId: req.user_id, commentDescription: req.body.comment }
             const reply = await Comments.create(data)
             const comment = await Comments.findByIdAndUpdate({ _id: req.body.commentId }, { '$push': { 'replies': reply._id } }, { new: true })
+
+            const result = await Reviews.findOneAndUpdate({ _id:  req.user_id, 'ReviewList._id': req.body.reviewId},{ $inc: { 'ReviewList.$.commentCount': 1 } },{ new: true } );
             const moreComments = await Comments.findOne({ _id: comment._id }).populate('replies');
             notification.createdCommentId = reply._id.toString() // comment created _id
             notification.commentedOnCommentId = comment._id.toString()  // comment  _id on which user has replied
