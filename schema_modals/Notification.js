@@ -6,15 +6,15 @@ const NotificationSchema = new Schema({
     userId:{type:String,required:true,unique:false},
     notifications:[
         {
-            reviewId: {type:String,required:true},
-            reviewName:{type:String,required:true},
+            reviewId: {type:String},
+            reviewName:{type:String,},
             senderUserName: {type:String,required:true},
-            senderUserId:{type:String,required:true},
+            senderUserId:{type:String},
             message:{type:String,required:true},
             createdCommentId:{type:String},
             commentedOnCommentId:{type:String},
             commentedOnComment:{type:String},
-            commentDescription:{type:String,required:true},
+            commentDescription:{type:String},
             seen:{type:Boolean,default:false},
             date: { type: Date, default: Date.now }
         }

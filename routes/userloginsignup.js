@@ -11,7 +11,7 @@ var { body, validationResult } = require('express-validator');
 const UserProfile = require('../schema_modals/user_profile.js')
 const checkexistuser = require('../middlewares/Checkexistuser.js')
 const userbcryptpassword = require('../middlewares/BcryptedPass.js')
-const SendNotification  = require('../middlewares/SendNotification.js')
+const SendNotification = require('../middlewares/SendNotification.js')
 
 
 app.use(express.json())
@@ -52,16 +52,6 @@ router.post('/login', [body('password', 'password must be atleast 6 chracter').i
 router.post('/signup', [body('password', 'password must be atleast 6 chracter').isLength({ min: 6 }), body('email', 'email is not valid').isEmail(), body('phone', 'number is not valid').isLength({ min: 10 })], [checkexistuser, userbcryptpassword], async (req, res) => {
     // console.log(req.body)
     // giving an error of express validations when the userser input data foes not match 
-    const notification = {
-        reviewId: '',
-        reviewName: '',
-        senderUserName: "Website Bot",
-        senderUserId: '',
-        message: 'hii welcome to the movie reviews website ',
-        createdCommentId: '',
-        commentDescription: '',
-        seen: false,
-    }
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         // 400  staus code for bad request 
@@ -78,9 +68,22 @@ router.post('/signup', [body('password', 'password must be atleast 6 chracter').
             // console.log('this is an authtoken', authtoken)
             // we can not set cookie here directly becuase of not same origin so we will send it as a  data 
             // res.cookie("jwt", authtoken, {httpOnly: true,secure:true,expires:new Date(Date.now()+1000000)}) // saving the authtoken for the user in the cookie
-            notification.senderUserId = user._id.toString()
-            const result = await SendNotification(user._id);
-            if(result){
+            const notification = {
+                reviewId: '',
+                reviewName:'',
+                senderUserName: " Owner ",
+                senderUserId:'',
+                message:"Welcome to movies review website here you can get the reviews of movies and download link also ",
+                createdCommentId:'',
+                commentedOnCommentId:'',
+                commentedOnComment:'',
+                commentDescription:'',
+                seen:false,
+                
+            }
+            
+            const result = await SendNotification(user._id.toString(),notification);
+            if (result) {
                 console.log('welcome notifications has send to the user ')
             }
             return res.status(201).json({ data: user, jwt: authtoken })

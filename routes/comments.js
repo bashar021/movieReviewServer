@@ -98,10 +98,12 @@ router.get('/delete/:commentId/:parentId', verifyAuthToken, async (req, res) => 
             const removeFromParent = await Comments.findByIdAndUpdate({ _id: req.params.parentId }, { $pull: { 'replies': commentId } })
             // const result = await Reviews.findOneAndUpdate({ _id:  req.user_id, 'ReviewList._id': removeFromParent.reviewId},{ $inc: { 'ReviewList.$.commentCount': -1 } },{ new: true } );
         }
+        let deletedCount = 0;
         const deleteRepliesRecursively = async (commentId) => {
             const comment = await Comments.findOneAndDelete({ _id: commentId });
             const result = await Reviews.findOneAndUpdate({ _id:  req.user_id, 'ReviewList._id': comment.reviewId},{ $inc: { 'ReviewList.$.commentCount': -1 } },{ new: true } );
             // comment.reviewId
+            deletedCount++;
             if (comment.replies) {
                 for (const reply of comment.replies) {
                     await deleteRepliesRecursively(reply)
@@ -110,7 +112,8 @@ router.get('/delete/:commentId/:parentId', verifyAuthToken, async (req, res) => 
         };
         await deleteRepliesRecursively(commentId);
         // console.log('deleted succesfull')
-        return res.status(204).json({ data: 'successfully deleted' })
+        console.log(deletedCount,"comment has been deleted")
+        return res.status(201).json({ message: 'successfully deleted',count:deletedCount })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ error: 'internal server error' })
